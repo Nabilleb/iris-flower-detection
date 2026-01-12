@@ -30,3 +30,56 @@ document.getElementById("fillVersicolor").addEventListener("click", () => {
 document.getElementById("fillVirginica").addEventListener("click", () => {
   setInputs(6.5, 3.0, 5.5, 2.0);
 });
+
+function toFloat(id) {
+  return parseFloat(document.getElementById(id).value);
+}
+
+function fmPct(x){
+  if (typeof x !== "number" || isNaN(x)) {
+    return "N/A";
+  }
+  return (x * 100).toFixed(2) + "%";
+}
+
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  statusEl.innerText = "Loading...";
+  resultEl.classList.add("hidden");
+  rawEl.classList.add("hidden");
+  rawEl.innerText = "";
+
+  const sepal_length = toFloat("sepal_length");
+  const sepal_width = toFloat("sepal_width");
+  const petal_length = toFloat("petal_length");
+  const petal_width = toFloat("petal_width");
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sepal_length,
+        sepal_width,
+        petal_length,
+        petal_width,
+      }),
+    });
+
+    const data = await response.json();
+    statusEl.innerText = "Success!";
+
+    predLabelEl.innerText = data.prediction;
+    pSetosaEl.innerText = fmPct(data.probabilities.setosa);
+    pVersicolorEl.innerText = fmPct(data.probabilities.versicolor);
+    pVirginicaEl.innerText = fmPct(data.probabilities.virginica);
+
+    resultEl.classList.remove("hidden");
+    rawEl.innerText = JSON.stringify(data, null, 2);
+    rawEl.classList.remove("hidden");
+  } catch (err) {
+    statusEl.innerText = "Error: " + err.message;
+  }
+});
+
